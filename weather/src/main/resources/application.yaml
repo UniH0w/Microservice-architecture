@@ -3,12 +3,12 @@ spring:
     name: weather
 
 server:
-  port: 0
+  port: 8082
 
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
   instance:
-    instance-id: ${spring.application.name}:${random.value}
-    prefer-ip-address: true
+    hostname: localhost
+    prefer-ip-address: false
