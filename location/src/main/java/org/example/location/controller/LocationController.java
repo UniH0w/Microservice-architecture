@@ -17,7 +17,7 @@ import java.util.List;
 @RequestMapping("/location")
 public class LocationController {
 
-    private static final String WEATHER_URL = "http://localhost:8082/weather?lat={lat}&lon={lon}";
+    private static final String WEATHER_URL = "http://weather/weather?lat={lat}&lon={lon}";
 
     @Autowired
     private LocationRepository repository;
