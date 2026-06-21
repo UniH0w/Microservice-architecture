@@ -2,6 +2,6 @@ org\example\person\controller\PersonController.class
 org\example\person\repository\PersonRepository.class
 org\example\person\PersonApplication.class
 org\example\person\model\Weather.class
+org\example\person\model\User.class
 org\example\person\model\Geodata.class
 org\example\person\config\PersonConfig.class
-org\example\person\model\Person.class

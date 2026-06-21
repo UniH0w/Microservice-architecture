@@ -1,8 +1,7 @@
 package org.example.person.controller;
 
-import tools.jackson.databind.JsonNode;
 import org.example.person.model.Geodata;
-import org.example.person.model.Person;
+import org.example.person.model.User;
 import org.example.person.model.Weather;
 import org.example.person.repository.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import tools.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,8 +18,8 @@ import java.util.List;
 @RequestMapping("/person")
 public class PersonController {
 
-    private static final String LOCATION_URL = "http://localhost:8081/location?name={name}";
-    private static final String WEATHER_URL = "http://localhost:8082/weather?lat={lat}&lon={lon}";
+    private static final String LOCATION_URL = "http://location/location?name={name}";
+    private static final String WEATHER_URL = "http://weather/weather?lat={lat}&lon={lon}";
 
     @Autowired
     private PersonRepository repository;
@@ -28,50 +28,52 @@ public class PersonController {
     private RestTemplate restTemplate;
 
     @GetMapping
-    public ResponseEntity<?> findAll(@RequestParam(required = false) String name) {
-        if (name == null) {
-            List<Person> persons = new ArrayList<>();
-            repository.findAll().forEach(persons::add);
-            return ResponseEntity.ok(persons);
-        }
-        return repository.findByName(name)
-                .<ResponseEntity<?>>map(ResponseEntity::ok)
+    public List<User> findAll() {
+        List<User> users = new ArrayList<>();
+        repository.findAll().forEach(users::add);
+        return users;
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<User> findById(@PathVariable int id) {
+        return repository.findById(id)
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<Person> create(@RequestBody Person person) {
-        if (repository.findByName(person.getName()).isPresent()) {
+    public ResponseEntity<User> create(@RequestBody User user) {
+        if (user.getId() != null && repository.findById(user.getId()).isPresent()) {
             return ResponseEntity.badRequest().build();
         }
-        return new ResponseEntity<>(repository.save(person), HttpStatus.CREATED);
+        return new ResponseEntity<>(repository.save(user), HttpStatus.CREATED);
     }
 
-    @PutMapping
-    public ResponseEntity<Person> update(@RequestParam String name, @RequestBody Person person) {
-        if (repository.findByName(name).isEmpty()) {
+    @PutMapping("/{id}")
+    public ResponseEntity<User> update(@PathVariable int id, @RequestBody User user) {
+        if (repository.findById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        person.setName(name);
-        return ResponseEntity.ok(repository.save(person));
+        user.setId(id);
+        return ResponseEntity.ok(repository.save(user));
     }
 
-    @DeleteMapping
-    public ResponseEntity<Void> delete(@RequestParam String name) {
-        return repository.findByName(name)
-                .map(person -> {
-                    repository.delete(person);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable int id) {
+        return repository.findById(id)
+                .map(user -> {
+                    repository.delete(user);
                     return ResponseEntity.ok().<Void>build();
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/weather")
-    public ResponseEntity<Weather> getWeather(@RequestParam String name) {
-        return repository.findByName(name)
-                .map(person -> {
+    @GetMapping("/{id}/weather")
+    public ResponseEntity<Weather> getWeather(@PathVariable int id) {
+        return repository.findById(id)
+                .map(user -> {
                     Geodata geodata = restTemplate.getForObject(
-                            LOCATION_URL, Geodata.class, person.getLocation());
+                            LOCATION_URL, Geodata.class, user.getLocation());
                     if (geodata == null) {
                         return ResponseEntity.notFound().<Weather>build();
                     }
