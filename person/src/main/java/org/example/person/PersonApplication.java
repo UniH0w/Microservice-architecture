@@ -9,6 +9,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 public class PersonApplication {
 
     public static void main(String[] args) {
+        System.setProperty("h2.bindAddress", "127.0.0.1");
         SpringApplication.run(PersonApplication.class, args);
     }
 
