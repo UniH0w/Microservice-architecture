@@ -1,1 +1,1 @@
-<img width="1909" height="627" alt="firefox_jvYTltbpC3" src="https://github.com/user-attachments/assets/c0f2808c-6979-46dc-b88b-1bd2a2590046" />
+<img width="1904" height="637" alt="firefox_fAUdpZh5kv" src="https://github.com/user-attachments/assets/10a7131d-c2ea-4d54-ae8f-6feda645821d" />
