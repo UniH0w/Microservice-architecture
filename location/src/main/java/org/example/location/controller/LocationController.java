@@ -5,6 +5,7 @@ import org.example.location.model.Location;
 import org.example.location.model.Weather;
 import org.example.location.repository.LocationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,8 @@ import java.util.List;
 @RequestMapping("/location")
 public class LocationController {
 
-    private static final String WEATHER_URL = "http://weather/weather?lat={lat}&lon={lon}";
+    @Value("${weather.url}")
+    private String weatherUrl;
 
     @Autowired
     private LocationRepository repository;
@@ -68,8 +70,9 @@ public class LocationController {
     public ResponseEntity<Weather> getWeather(@RequestParam String name) {
         return repository.findByName(name)
                 .map(location -> {
-                    JsonNode root = restTemplate.getForObject(
-                            WEATHER_URL, JsonNode.class, location.getLatitude(), location.getLongitude());
+                    String url = String.format("http://%s/weather?lat=%s&lon=%s",
+                            weatherUrl, location.getLatitude(), location.getLongitude());
+                    JsonNode root = restTemplate.getForObject(url, JsonNode.class);
                     if (root == null) {
                         return ResponseEntity.notFound().<Weather>build();
                     }

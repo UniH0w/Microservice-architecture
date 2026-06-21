@@ -1,15 +1,14 @@
 package org.example.person.controller;
 
-import org.example.person.model.Geodata;
 import org.example.person.model.User;
 import org.example.person.model.Weather;
 import org.example.person.repository.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import tools.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,8 +17,8 @@ import java.util.List;
 @RequestMapping("/person")
 public class PersonController {
 
-    private static final String LOCATION_URL = "http://location/location?name={name}";
-    private static final String WEATHER_URL = "http://weather/weather?lat={lat}&lon={lon}";
+    @Value("${location.url}")
+    private String locationUrl;
 
     @Autowired
     private PersonRepository repository;
@@ -72,20 +71,12 @@ public class PersonController {
     public ResponseEntity<Weather> getWeather(@PathVariable int id) {
         return repository.findById(id)
                 .map(user -> {
-                    Geodata geodata = restTemplate.getForObject(
-                            LOCATION_URL, Geodata.class, user.getLocation());
-                    if (geodata == null) {
+                    String url = String.format("http://%s/location/weather?name=%s",
+                            locationUrl, user.getLocation());
+                    Weather weather = restTemplate.getForObject(url, Weather.class);
+                    if (weather == null) {
                         return ResponseEntity.notFound().<Weather>build();
                     }
-                    JsonNode root = restTemplate.getForObject(
-                            WEATHER_URL, JsonNode.class, geodata.getLatitude(), geodata.getLongitude());
-                    if (root == null) {
-                        return ResponseEntity.notFound().<Weather>build();
-                    }
-                    Weather weather = new Weather(
-                            root.get("main").get("temp").asDouble(),
-                            root.get("weather").get(0).get("description").asText(),
-                            root.get("main").get("humidity").asInt());
                     return ResponseEntity.ok(weather);
                 })
                 .orElse(ResponseEntity.notFound().build());
