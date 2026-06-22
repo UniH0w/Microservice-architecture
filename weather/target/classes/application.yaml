@@ -1,6 +1,0 @@
-spring:
-  application:
-    name: weather
-
-server:
-  port: 8082

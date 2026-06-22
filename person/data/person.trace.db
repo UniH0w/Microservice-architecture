@@ -1,0 +1,4 @@
+2026-06-21 22:23:02.040295+03:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Синтаксическая ошибка в выражении SQL "create table [*]user (id integer not null, birthday date, firstname varchar(255), lastname varchar(255), location varchar(255), surname varchar(255), primary key (id))"; ожидалось "identifier"
+Syntax error in SQL statement "create table [*]user (id integer not null, birthday date, firstname varchar(255), lastname varchar(255), location varchar(255), surname varchar(255), primary key (id))"; expected "identifier"; SQL statement:
+create table user (id integer not null, birthday date, firstname varchar(255), lastname varchar(255), location varchar(255), surname varchar(255), primary key (id)) [42001-240]

@@ -1,11 +1,10 @@
 package org.example.person.controller;
 
-import tools.jackson.databind.JsonNode;
-import org.example.person.model.Geodata;
-import org.example.person.model.Person;
+import org.example.person.model.User;
 import org.example.person.model.Weather;
 import org.example.person.service.PersonService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +17,8 @@ import java.util.List;
 @RequestMapping("/person")
 public class PersonController {
 
-    private static final String LOCATION_URL = "http://localhost:8081/location?name={name}";
-    private static final String WEATHER_URL = "http://localhost:8082/weather?lat={lat}&lon={lon}";
+    @Value("${location.url}")
+    private String locationUrl;
 
     @Autowired
     private PersonService personService;
@@ -75,15 +74,6 @@ public class PersonController {
                     if (geodata == null) {
                         return ResponseEntity.notFound().<Weather>build();
                     }
-                    JsonNode root = restTemplate.getForObject(
-                            WEATHER_URL, JsonNode.class, geodata.getLatitude(), geodata.getLongitude());
-                    if (root == null) {
-                        return ResponseEntity.notFound().<Weather>build();
-                    }
-                    Weather weather = new Weather(
-                            root.get("main").get("temp").asDouble(),
-                            root.get("weather").get(0).get("description").asText(),
-                            root.get("main").get("humidity").asInt());
                     return ResponseEntity.ok(weather);
                 })
                 .orElse(ResponseEntity.notFound().build());
