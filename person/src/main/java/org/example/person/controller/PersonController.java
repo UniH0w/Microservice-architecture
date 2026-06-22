@@ -27,51 +27,54 @@ public class PersonController {
     private RestTemplate restTemplate;
 
     @GetMapping
-    public ResponseEntity<?> findAll(@RequestParam(required = false) String name) {
-        if (name == null) {
-            List<Person> persons = new ArrayList<>();
-            personService.findAll().forEach(persons::add);
-            return ResponseEntity.ok(persons);
-        }
-        return personService.findByName(name)
-                .<ResponseEntity<?>>map(ResponseEntity::ok)
+    public List<User> findAll() {
+        List<User> users = new ArrayList<>();
+        personService.findAll().forEach(users::add);
+        return users;
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<User> findById(@PathVariable int id) {
+        return personService.findById(id)
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<Person> create(@RequestBody Person person) {
-        if (personService.findByName(person.getName()).isPresent()) {
+    public ResponseEntity<User> create(@RequestBody User user) {
+        if (user.getId() != null && personService.existsById(user.getId())) {
             return ResponseEntity.badRequest().build();
         }
-        return new ResponseEntity<>(personService.save(person), HttpStatus.CREATED);
+        return new ResponseEntity<>(personService.save(user), HttpStatus.CREATED);
     }
 
-    @PutMapping
-    public ResponseEntity<Person> update(@RequestParam String name, @RequestBody Person person) {
-        if (personService.findByName(name).isEmpty()) {
+    @PutMapping("/{id}")
+    public ResponseEntity<User> update(@PathVariable int id, @RequestBody User user) {
+        if (personService.findById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        person.setName(name);
-        return ResponseEntity.ok(personService.save(person));
+        user.setId(id);
+        return ResponseEntity.ok(personService.save(user));
     }
 
-    @DeleteMapping
-    public ResponseEntity<Void> delete(@RequestParam String name) {
-        return personService.findByName(name)
-                .map(person -> {
-                    personService.delete(person);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable int id) {
+        return personService.findById(id)
+                .map(user -> {
+                    personService.delete(user);
                     return ResponseEntity.ok().<Void>build();
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/weather")
-    public ResponseEntity<Weather> getWeather(@RequestParam String name) {
-        return personService.findByName(name)
-                .map(person -> {
-                    Geodata geodata = restTemplate.getForObject(
-                            LOCATION_URL, Geodata.class, person.getLocation());
-                    if (geodata == null) {
+    @GetMapping("/{id}/weather")
+    public ResponseEntity<Weather> getWeather(@PathVariable int id) {
+        return personService.findById(id)
+                .map(user -> {
+                    String url = String.format("http://%s/location/weather?name=%s",
+                            locationUrl, user.getLocation());
+                    Weather weather = restTemplate.getForObject(url, Weather.class);
+                    if (weather == null) {
                         return ResponseEntity.notFound().<Weather>build();
                     }
                     return ResponseEntity.ok(weather);

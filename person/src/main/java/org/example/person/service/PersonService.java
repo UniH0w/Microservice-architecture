@@ -1,6 +1,6 @@
 package org.example.person.service;
 
-import org.example.person.model.Person;
+import org.example.person.model.User;
 import org.example.person.repository.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,19 +13,23 @@ public class PersonService {
     @Autowired
     private PersonRepository repository;
 
-    public Iterable<Person> findAll() {
+    public Iterable<User> findAll() {
         return repository.findAll();
     }
 
-    public Optional<Person> findByName(String name) {
-        return repository.findByName(name);
+    public Optional<User> findById(int id) {
+        return repository.findById(id);
     }
 
-    public Person save(Person person) {
-        return repository.save(person);
+    public boolean existsById(int id) {
+        return repository.existsById(id);
     }
 
-    public void delete(Person person) {
-        repository.delete(person);
+    public User save(User user) {
+        return repository.save(user);
+    }
+
+    public void delete(User user) {
+        repository.delete(user);
     }
 }
