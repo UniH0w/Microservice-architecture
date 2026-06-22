@@ -4,6 +4,7 @@ import org.example.location.model.Location;
 import org.example.location.model.Weather;
 import org.example.location.repository.LocationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import tools.jackson.databind.JsonNode;
@@ -13,7 +14,8 @@ import java.util.Optional;
 @Service
 public class LocationService {
 
-    private static final String WEATHER_URL = "http://weather/weather?lat={lat}&lon={lon}";
+    @Value("${weather.url}")
+    private String weatherUrl;
 
     @Autowired
     private LocationRepository repository;
@@ -55,8 +57,9 @@ public class LocationService {
 
     public Optional<Weather> getWeather(String name) {
         return findByName(name).flatMap(location -> {
-            JsonNode root = restTemplate.getForObject(
-                    WEATHER_URL, JsonNode.class, location.getLatitude(), location.getLongitude());
+            String url = String.format("http://%s/weather?lat=%s&lon=%s",
+                    weatherUrl, location.getLatitude(), location.getLongitude());
+            JsonNode root = restTemplate.getForObject(url, JsonNode.class);
             if (root == null) {
                 return Optional.empty();
             }
