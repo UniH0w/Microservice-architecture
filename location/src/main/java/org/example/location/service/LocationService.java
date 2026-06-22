@@ -13,7 +13,7 @@ import java.util.Optional;
 @Service
 public class LocationService {
 
-    private static final String WEATHER_URL = "http://weather/weather?lat={lat}&lon={lon}";
+    private static final String WEATHER_URL = "http://localhost:8082/weather?lat={lat}&lon={lon}";
 
     @Autowired
     private LocationRepository repository;

@@ -1,18 +1,21 @@
 package org.example.person.service;
 
-import org.example.person.model.User;
+import org.example.person.model.Geodata;
+import org.example.person.model.Person;
 import org.example.person.model.Weather;
 import org.example.person.repository.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import tools.jackson.databind.JsonNode;
 
 import java.util.Optional;
 
 @Service
 public class PersonService {
 
-    private static final String LOCATION_WEATHER_URL = "http://location/location/weather?name={name}";
+    private static final String LOCATION_URL = "http://localhost:8081/location?name={name}";
+    private static final String WEATHER_URL = "http://localhost:8082/weather?lat={lat}&lon={lon}";
 
     @Autowired
     private PersonRepository repository;
@@ -20,47 +23,58 @@ public class PersonService {
     @Autowired
     private RestTemplate restTemplate;
 
-    public Iterable<User> findAll() {
+    public Iterable<Person> findAll() {
         return repository.findAll();
     }
 
-    public Optional<User> findById(int id) {
-        return repository.findById(id);
+    public Optional<Person> findByName(String name) {
+        return repository.findByName(name);
     }
 
-    public boolean existsById(int id) {
-        return repository.existsById(id);
-    }
-
-    public Optional<User> create(User user) {
-        if (user.getId() != null && existsById(user.getId())) {
+    public Optional<Person> create(Person person) {
+        if (findByName(person.getName()).isPresent()) {
             return Optional.empty();
         }
-        return Optional.of(repository.save(user));
+        return Optional.of(repository.save(person));
     }
 
-    public Optional<User> update(int id, User user) {
-        if (findById(id).isEmpty()) {
+    public Optional<Person> update(String name, Person person) {
+        if (findByName(name).isEmpty()) {
             return Optional.empty();
         }
-        user.setId(id);
-        return Optional.of(repository.save(user));
+        person.setName(name);
+        return Optional.of(repository.save(person));
     }
 
-    public boolean delete(int id) {
-        return findById(id)
-                .map(user -> {
-                    repository.delete(user);
+    public boolean delete(String name) {
+        return findByName(name)
+                .map(p -> {
+                    repository.delete(p);
                     return true;
                 })
                 .orElse(false);
     }
 
-    public Optional<Weather> getWeather(int id) {
-        return findById(id).flatMap(user -> {
-            Weather weather = restTemplate.getForObject(
-                    LOCATION_WEATHER_URL, Weather.class, user.getLocation());
-            return weather == null ? Optional.empty() : Optional.of(weather);
+    public Optional<Weather> getWeather(String name) {
+        return findByName(name).flatMap(person -> {
+            Geodata geodata = restTemplate.getForObject(
+                    LOCATION_URL, Geodata.class, person.getLocation());
+            if (geodata == null) {
+                return Optional.empty();
+            }
+            JsonNode root = restTemplate.getForObject(
+                    WEATHER_URL, JsonNode.class, geodata.getLatitude(), geodata.getLongitude());
+            if (root == null) {
+                return Optional.empty();
+            }
+            return Optional.of(parseWeather(root));
         });
+    }
+
+    private Weather parseWeather(JsonNode root) {
+        return new Weather(
+                root.get("main").get("temp").asDouble(),
+                root.get("weather").get(0).get("description").asText(),
+                root.get("main").get("humidity").asInt());
     }
 }
