@@ -17,15 +17,15 @@ public class LocationService {
         return repository.findAll();
     }
 
-    public Optional<Location> findByName(String name) {
-        return repository.findByName(name);
+    public Optional<Location> findById(int id) {
+        return repository.findById(id);
+    }
+
+    public boolean existsById(int id) {
+        return repository.existsById(id);
     }
 
     public Location save(Location location) {
         return repository.save(location);
-    }
-
-    public void delete(Location location) {
-        repository.delete(location);
     }
 }
