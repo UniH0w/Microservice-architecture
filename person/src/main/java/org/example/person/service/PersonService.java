@@ -4,7 +4,6 @@ import org.example.person.model.User;
 import org.example.person.model.Weather;
 import org.example.person.repository.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -13,8 +12,7 @@ import java.util.Optional;
 @Service
 public class PersonService {
 
-    @Value("${location.url}")
-    private String locationUrl;
+    private static final String LOCATION_WEATHER_URL = "http://location/location/weather?name={name}";
 
     @Autowired
     private PersonRepository repository;
@@ -60,9 +58,8 @@ public class PersonService {
 
     public Optional<Weather> getWeather(int id) {
         return findById(id).flatMap(user -> {
-            String url = String.format("http://%s/location/weather?name=%s",
-                    locationUrl, user.getLocation());
-            Weather weather = restTemplate.getForObject(url, Weather.class);
+            Weather weather = restTemplate.getForObject(
+                    LOCATION_WEATHER_URL, Weather.class, user.getLocation());
             return weather == null ? Optional.empty() : Optional.of(weather);
         });
     }
