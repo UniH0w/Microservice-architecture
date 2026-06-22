@@ -1,35 +1,23 @@
 package org.example.weather.service;
 
-import org.example.weather.model.Weather;
-import org.example.weather.repository.WeatherRepository;
+import org.example.weather.model.Root;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 public class WeatherService {
 
+    private static final String API_KEY = "53be6b675c0f5b4b7ed6ce4dd7f34fe3";
+    private static final String API_URL =
+            "https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={apiKey}&units=metric";
+
     @Autowired
-    private WeatherRepository repository;
+    private RestTemplate restTemplate;
 
-    public Iterable<Weather> findAll() {
-        return repository.findAll();
-    }
-
-    public Optional<Weather> findById(int id) {
-        return repository.findById(id);
-    }
-
-    public Optional<Weather> findByCoordinates(Double latitude, Double longitude) {
-        return repository.findByLatitudeAndLongitude(latitude, longitude);
-    }
-
-    public boolean existsById(int id) {
-        return repository.existsById(id);
-    }
-
-    public Weather save(Weather weather) {
-        return repository.save(weather);
+    @Cacheable(value = "weather", key = "#lat + '-' + #lon")
+    public Root getWeather(double lat, double lon) {
+        return restTemplate.getForObject(API_URL, Root.class, lat, lon, API_KEY);
     }
 }
