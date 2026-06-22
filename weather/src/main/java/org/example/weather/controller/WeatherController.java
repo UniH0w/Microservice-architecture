@@ -1,7 +1,7 @@
 package org.example.weather.controller;
 
 import org.example.weather.model.Weather;
-import org.example.weather.repository.WeatherRepository;
+import org.example.weather.service.WeatherService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,27 +14,27 @@ import java.util.Optional;
 public class WeatherController {
 
     @Autowired
-    private WeatherRepository repository;
+    private WeatherService weatherService;
 
     @GetMapping
     public Iterable<Weather> findAll() {
-        return repository.findAll();
+        return weatherService.findAll();
     }
 
     @GetMapping("/{id}")
     public Optional<Weather> findById(@PathVariable int id) {
-        return repository.findById(id);
+        return weatherService.findById(id);
     }
 
     @GetMapping("/by-coordinates")
     public Optional<Weather> findByCoordinates(@RequestParam Double latitude, @RequestParam Double longitude) {
-        return repository.findByLatitudeAndLongitude(latitude, longitude);
+        return weatherService.findByCoordinates(latitude, longitude);
     }
 
     @PostMapping
     public ResponseEntity<Weather> save(@RequestBody Weather weather) {
-        return repository.findById(weather.getId()).isPresent()
+        return weatherService.existsById(weather.getId())
                 ? ResponseEntity.badRequest().build()
-                : new ResponseEntity<>(repository.save(weather), HttpStatus.CREATED);
+                : new ResponseEntity<>(weatherService.save(weather), HttpStatus.CREATED);
     }
 }

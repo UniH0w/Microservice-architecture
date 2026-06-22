@@ -1,4 +1,5 @@
 org\example\weather\controller\WeatherController.class
 org\example\weather\model\Weather.class
+org\example\weather\service\WeatherService.class
 org\example\weather\WeatherApplication.class
 org\example\weather\repository\WeatherRepository.class

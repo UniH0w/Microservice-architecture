@@ -2,3 +2,4 @@ org\example\person\controller\PersonController.class
 org\example\person\repository\PersonRepository.class
 org\example\person\model\Person.class
 org\example\person\PersonApplication.class
+org\example\person\service\PersonService.class
