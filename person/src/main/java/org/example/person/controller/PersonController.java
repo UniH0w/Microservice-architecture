@@ -2,7 +2,7 @@ package org.example.person.controller;
 
 import org.example.person.model.User;
 import org.example.person.model.Weather;
-import org.example.person.repository.PersonRepository;
+import org.example.person.service.PersonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -21,7 +21,7 @@ public class PersonController {
     private String locationUrl;
 
     @Autowired
-    private PersonRepository repository;
+    private PersonService personService;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -29,39 +29,39 @@ public class PersonController {
     @GetMapping
     public List<User> findAll() {
         List<User> users = new ArrayList<>();
-        repository.findAll().forEach(users::add);
+        personService.findAll().forEach(users::add);
         return users;
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<User> findById(@PathVariable int id) {
-        return repository.findById(id)
+        return personService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ResponseEntity<User> create(@RequestBody User user) {
-        if (user.getId() != null && repository.findById(user.getId()).isPresent()) {
+        if (user.getId() != null && personService.existsById(user.getId())) {
             return ResponseEntity.badRequest().build();
         }
-        return new ResponseEntity<>(repository.save(user), HttpStatus.CREATED);
+        return new ResponseEntity<>(personService.save(user), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<User> update(@PathVariable int id, @RequestBody User user) {
-        if (repository.findById(id).isEmpty()) {
+        if (personService.findById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         user.setId(id);
-        return ResponseEntity.ok(repository.save(user));
+        return ResponseEntity.ok(personService.save(user));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable int id) {
-        return repository.findById(id)
+        return personService.findById(id)
                 .map(user -> {
-                    repository.delete(user);
+                    personService.delete(user);
                     return ResponseEntity.ok().<Void>build();
                 })
                 .orElse(ResponseEntity.notFound().build());
@@ -69,7 +69,7 @@ public class PersonController {
 
     @GetMapping("/{id}/weather")
     public ResponseEntity<Weather> getWeather(@PathVariable int id) {
-        return repository.findById(id)
+        return personService.findById(id)
                 .map(user -> {
                     String url = String.format("http://%s/location/weather?name=%s",
                             locationUrl, user.getLocation());

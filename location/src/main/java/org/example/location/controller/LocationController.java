@@ -3,7 +3,7 @@ package org.example.location.controller;
 import tools.jackson.databind.JsonNode;
 import org.example.location.model.Location;
 import org.example.location.model.Weather;
-import org.example.location.repository.LocationRepository;
+import org.example.location.service.LocationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -22,7 +22,7 @@ public class LocationController {
     private String weatherUrl;
 
     @Autowired
-    private LocationRepository repository;
+    private LocationService locationService;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -31,36 +31,36 @@ public class LocationController {
     public ResponseEntity<?> findAll(@RequestParam(required = false) String name) {
         if (name == null) {
             List<Location> locations = new ArrayList<>();
-            repository.findAll().forEach(locations::add);
+            locationService.findAll().forEach(locations::add);
             return ResponseEntity.ok(locations);
         }
-        return repository.findByName(name)
+        return locationService.findByName(name)
                 .<ResponseEntity<?>>map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ResponseEntity<Location> create(@RequestBody Location location) {
-        if (repository.findByName(location.getName()).isPresent()) {
+        if (locationService.findByName(location.getName()).isPresent()) {
             return ResponseEntity.badRequest().build();
         }
-        return new ResponseEntity<>(repository.save(location), HttpStatus.CREATED);
+        return new ResponseEntity<>(locationService.save(location), HttpStatus.CREATED);
     }
 
     @PutMapping
     public ResponseEntity<Location> update(@RequestParam String name, @RequestBody Location location) {
-        if (repository.findByName(name).isEmpty()) {
+        if (locationService.findByName(name).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         location.setName(name);
-        return ResponseEntity.ok(repository.save(location));
+        return ResponseEntity.ok(locationService.save(location));
     }
 
     @DeleteMapping
     public ResponseEntity<Void> delete(@RequestParam String name) {
-        return repository.findByName(name)
+        return locationService.findByName(name)
                 .map(location -> {
-                    repository.delete(location);
+                    locationService.delete(location);
                     return ResponseEntity.ok().<Void>build();
                 })
                 .orElse(ResponseEntity.notFound().build());
@@ -68,7 +68,7 @@ public class LocationController {
 
     @GetMapping("/weather")
     public ResponseEntity<Weather> getWeather(@RequestParam String name) {
-        return repository.findByName(name)
+        return locationService.findByName(name)
                 .map(location -> {
                     String url = String.format("http://%s/weather?lat=%s&lon=%s",
                             weatherUrl, location.getLatitude(), location.getLongitude());

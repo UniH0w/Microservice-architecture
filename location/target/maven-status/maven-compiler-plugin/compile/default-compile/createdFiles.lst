@@ -1,6 +1,0 @@
-org\example\location\config\LocationConfig.class
-org\example\location\model\Location.class
-org\example\location\model\Weather.class
-org\example\location\LocationApplication.class
-org\example\location\repository\LocationRepository.class
-org\example\location\controller\LocationController.class

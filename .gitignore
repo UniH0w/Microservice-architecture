@@ -1,0 +1,10 @@
+target/
+*.class
+*.jar
+*.jar.original
+.idea/
+*.iml
+data/
+*.mv.db
+*.trace.db
+*.lock.db
