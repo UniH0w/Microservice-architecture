@@ -19,14 +19,16 @@ public class LocationController {
     private LocationService locationService;
 
     @GetMapping
-    public ResponseEntity<?> findAll(@RequestParam(required = false) String name) {
-        if (name == null) {
-            List<Location> locations = new ArrayList<>();
-            locationService.findAll().forEach(locations::add);
-            return ResponseEntity.ok(locations);
-        }
+    public List<Location> findAll() {
+        List<Location> locations = new ArrayList<>();
+        locationService.findAll().forEach(locations::add);
+        return locations;
+    }
+
+    @GetMapping(params = "name")
+    public ResponseEntity<Location> findByName(@RequestParam String name) {
         return locationService.findByName(name)
-                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
